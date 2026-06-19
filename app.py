@@ -1,30 +1,36 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 
 # Load dataset
 iris = load_iris()
-df = pd.DataFrame(iris.data, columns=iris.feature_names)
-df['species'] = pd.Categorical.from_codes(iris.target, iris.target_names)
+X = pd.DataFrame(iris.data, columns=iris.feature_names)
+y = iris.target
 
-st.title("🌸 Iris Dataset Visualizations")
+# Train model
+model = RandomForestClassifier()
+model.fit(X, y)
 
-# Scatter plot Sepal
-st.subheader("Sepal Length vs Sepal Width")
-fig, ax = plt.subplots()
-sns.scatterplot(data=df, x="sepal length (cm)", y="sepal width (cm)", hue="species", ax=ax)
-st.pyplot(fig)
+st.title("🌸 Iris Flower Classifier")
 
-# Scatter plot Petal
-st.subheader("Petal Length vs Petal Width")
-fig, ax = plt.subplots()
-sns.scatterplot(data=df, x="petal length (cm)", y="petal width (cm)", hue="species", ax=ax)
-st.pyplot(fig)
+# Input sliders
+sepal_length = st.slider("Sepal length (cm)", float(X["sepal length (cm)"].min()), float(X["sepal length (cm)"].max()))
+sepal_width = st.slider("Sepal width (cm)", float(X["sepal width (cm)"].min()), float(X["sepal width (cm)"].max()))
+petal_length = st.slider("Petal length (cm)", float(X["petal length (cm)"].min()), float(X["petal length (cm)"].max()))
+petal_width = st.slider("Petal width (cm)", float(X["petal width (cm)"].min()), float(X["petal width (cm)"].max()))
 
-# Histogram
-st.subheader("Distribution of Sepal Length")
-fig, ax = plt.subplots()
-sns.histplot(df["sepal length (cm)"], bins=20, kde=True, ax=ax)
-st.pyplot(fig)
+# Prediction
+if st.button("Predict"):
+    input_data = [[sepal_length, sepal_width, petal_length, petal_width]]
+    prediction = model.predict(input_data)[0]
+    prediction_proba = model.predict_proba(input_data)[0]
+
+    flower_name = iris.target_names[prediction]
+    st.success(f"Hasil Prediksi: {flower_name}")
+
+    # Tampilkan probability
+    st.subheader("Prediction Probability")
+    proba_df = pd.DataFrame([prediction_proba], columns=iris.target_names)
+    st.table(proba_df)
